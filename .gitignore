@@ -1,6 +1,6 @@
 app
+*.exe
 
 *.o
-*.exe
 
 
