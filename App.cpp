@@ -6,7 +6,7 @@ wxIMPLEMENT_APP(App);
 bool App::OnInit() {
 
     StartupFrame* startupFrame = new StartupFrame("Pril Startup");
-    startupFrame->SetClientSize(800, 600);
+    startupFrame->SetClientSize(400, 200);
     startupFrame->Center();
     startupFrame->Show();
 
