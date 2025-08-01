@@ -3,6 +3,7 @@ name: Build and Release
 on:
   release:
     types: [created]
+  workflow_dispatch:
 
 jobs:
   build-and-release:
@@ -26,17 +27,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install wxWidgets (Linux)
+    - name: Install Dependencies (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
         sudo apt-get install -y libwxgtk3.2-dev build-essential make
 
-    - name: Install wxWidgets (macOS)
+    - name: Install Dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: brew install wxwidgets
 
-    - name: Install wxWidgets (Windows)
+    - name: Install Dependencies (Windows)
       if: matrix.os == 'windows-latest'
       uses: msys2/setup-msys2@v2
       with:
@@ -54,7 +55,6 @@ jobs:
     - name: Package artifact
       shell: bash
       run: |
-        # Create the asset package based on the OS
         if [ "${{ matrix.os }}" == "windows-latest" ]; then
           7z a ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
         elif [ "${{ matrix.os }}" == "macos-latest" ]; then
@@ -64,6 +64,7 @@ jobs:
         fi
 
     - name: Upload Release Asset
+      if: github.event_name == 'release'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,3 +73,10 @@ jobs:
         asset_path: ./${{ matrix.asset_name }}
         asset_name: ${{ matrix.asset_name }}
         asset_content_type: application/octet-stream
+
+    - name: Upload Build Artifact
+      if: github.event_name == 'workflow_dispatch'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.asset_name }}
+        path: ./${{ matrix.asset_name }}
