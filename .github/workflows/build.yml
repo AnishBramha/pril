@@ -1,3 +1,5 @@
+name: Build and Release
+
 on:
   release:
     types: [created]
@@ -14,37 +16,40 @@ jobs:
           - os: ubuntu-latest
             artifact_name: pril-editor
             asset_name: pril-editor-linux.tar.gz
-            package_command: tar -czvf
-            package_args: ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
+            package_cmd: tar -czf
             shell_type: bash
+            build_dir: .
           - os: macos-latest
             artifact_name: pril-editor
             asset_name: pril-editor-macos.zip
-            package_command: zip
-            package_args: ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
+            package_cmd: zip
             shell_type: bash
+            build_dir: .
           - os: windows-latest
             artifact_name: pril-editor.exe
             asset_name: pril-editor-windows.zip
-            package_command: 7z a
-            package_args: ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
+            package_cmd: 7z a
             shell_type: msys2 {0}
+            build_dir: .
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install Dependencies (Linux)
+        
+      - name: Install wxWidgets (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwxgtk3.2-dev build-essential make
+          sudo apt-get install -y libwxgtk3.2-dev build-essential
 
-      - name: Install Dependencies (macOS)
+      - name: Install wxWidgets (macOS)
         if: matrix.os == 'macos-latest'
-        run: brew install wxwidgets
+        run: |
+          brew install wxwidgets
+          # Ensure wx-config is in PATH (usually is)
+          echo "wx-config: $(wx-config --version)"
 
-      - name: Setup MSYS2 (Windows)
+      - name: Setup MSYS2 + wxWidgets (Windows)
         if: matrix.os == 'windows-latest'
         uses: msys2/setup-msys2@v2
         with:
@@ -55,20 +60,17 @@ jobs:
             mingw-w64-x86_64-wxwidgets
             make
 
-      - name: Build application
+      - name: Build executable
         shell: ${{ matrix.shell_type }}
-        run: make
-
-      - name: Package artifact
-        shell: bash
         run: |
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            7z a "${{ matrix.asset_name }}" "${{ matrix.artifact_name }}"
-          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            zip "${{ matrix.asset_name }}" "${{ matrix.artifact_name }}"
-          else
-            tar -czvf "${{ matrix.asset_name }}" "${{ matrix.artifact_name }}"
-          fi
+          make
+          # Verify the binary was created
+          ls -l ${{ matrix.artifact_name }} || exit 1
+
+      - name: Package executable
+        run: |
+          ${{ matrix.package_cmd }} "${{ matrix.asset_name }}" "${{ matrix.artifact_name }}"
+        shell: bash
 
       - name: Upload Release Asset
         if: github.event_name == 'release'
@@ -77,13 +79,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./${{ matrix.asset_name }}
+          asset_path: ${{ matrix.asset_name }}
           asset_name: ${{ matrix.asset_name }}
           asset_content_type: application/octet-stream
 
-      - name: Upload Build Artifact
+      - name: Upload Artifact (Manual Run)
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.asset_name }}
-          path: ./${{ matrix.asset_name }}
+          path: ${{ matrix.asset_name }}
