@@ -8,10 +8,6 @@ on:
 
 jobs:
   build-and-release:
-    defaults:
-      run:
-        shell: bash
-
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -31,54 +27,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up MSYS2 and install dependencies (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: msys2/setup-msys2@v2
+    - name: Set up wxWidgets
+      uses: egor-tensin/setup-wxwidgets@v1
       with:
-        msystem: MINGW64
-        update: true
-        install: >-
-          mingw-w64-x86_64-toolchain
-          make
-          mingw-w64-x86_64-wxwidgets
+        wx-version: '3.3'
 
-    - name: Install dependencies (macOS)
-      if: matrix.os == 'macos-latest'
-      run: brew install wxwidgets
-
-    - name: Install dependencies (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libwxgtk3.2-dev
-
-    - name: DEBUG - Verify wx-config (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      run: which wx-config
-
-    - name: Set PATH and DEBUG (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        # Homebrew on Intel Macs installs to /usr/local, on ARM (Apple Silicon) to /opt/homebrew
-        # This command adds the correct bin directory to the PATH for subsequent steps
-        echo "$(brew --prefix wxwidgets)/bin" >> $GITHUB_PATH
-        which wx-config
-
-    - name: DEBUG - Verify wx-config (Windows)
-      if: matrix.os == 'windows-latest'
-      shell: msys2 {0}
-      run: which wx-config
-
-    - name: Build on macOS and Linux
-      if: matrix.os != 'windows-latest'
+    - name: Build application
       run: make
 
-    - name: Build on Windows
-      if: matrix.os == 'windows-latest'
-      shell: msys2 {0}
-      run: make
-      
     - name: Package artifact
+      shell: bash
       run: |
         if [ "${{ matrix.os }}" == "windows-latest" ]; then
           7z a ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
@@ -99,6 +57,7 @@ jobs:
 
     - name: Determine Upload URL
       id: get_upload_url
+      shell: bash
       run: |
         if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
           echo "upload_url=$(jq -r '.upload_url' $HOME/release.json)" >> $GITHUB_OUTPUT
