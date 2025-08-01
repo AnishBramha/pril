@@ -20,7 +20,7 @@ class EditorFrame : public wxFrame {
 
     public:
 
-        EditorFrame(const wxString& title);
+        EditorFrame(const wxString& title, const wxString& filepath);
 
     private:
 

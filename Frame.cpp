@@ -1,6 +1,7 @@
 #include "Frame.h"
 #include <wx/filedlg.h>
 #include <wx/ffile.h>
+#include <wx/textfile.h>
 #include <wx/filename.h>
 #include <wx/msgdlg.h>
 
@@ -56,7 +57,7 @@ StartupFrame::StartupFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, t
 
 void StartupFrame::switchToEditor(wxCommandEvent& evt) {
 
-    EditorFrame* editorFrame = new EditorFrame("Pril Editor");
+    EditorFrame* editorFrame = new EditorFrame("Pril Editor", "");
     editorFrame->SetClientSize(800, 600);
     editorFrame->Center();
     editorFrame->Show();
@@ -81,10 +82,20 @@ void StartupFrame::showFileChooser(wxCommandEvent& evt) {
 
     wxFileDialog* files = new wxFileDialog(this, "Open a text file", "", "", "Text files (*.txt)|*.txt|Markdown (*.md)|*.md", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
-    files->ShowModal();
+    if (files->ShowModal() == wxID_OK) {
+
+        wxString path = files->GetPath();
+
+        EditorFrame* editorFrame = new EditorFrame("Pril Editor", path);
+        editorFrame->SetClientSize(800, 600);
+        editorFrame->Center();
+        editorFrame->Show();
+
+        this->Close();
+    }
 }
 
-EditorFrame::EditorFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title) {
+EditorFrame::EditorFrame(const wxString& title, const wxString& filepath) : wxFrame(nullptr, wxID_ANY, title) {
 
     wxPanel* controlPanel = new wxPanel(this);
 
@@ -113,6 +124,29 @@ EditorFrame::EditorFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, tit
 
     this->fileName = fileName;
     this->text = editor;
+
+    if (!filepath.IsEmpty()) {
+
+        wxTextFile* file = new wxTextFile();
+
+        file->Open(filepath);
+
+        wxString text;
+        text += file->GetFirstLine();
+
+        while (!file->Eof())
+            text += "\n" + file->GetNextLine();
+
+        file->Close();
+
+        wxFileName filename(filepath);
+        this->fileName->SetLabel(filename.GetFullName());
+
+        this->filepath = filepath;
+    
+        fileName->SetLabel(filename.GetFullName());
+        editor->SetValue(text);
+    }
 
     this->SetSizerAndFit(sizer);
     this->Layout();
@@ -159,9 +193,9 @@ void EditorFrame::onSaveAs(wxCommandEvent& evt) {
 
 void EditorFrame::switchToHome(wxCommandEvent& evt) {
 
-    wxMessageDialog* warn = new wxMessageDialog(this, "Do you want to save file before exiting?", "Save file", wxYES_NO | wxICON_WARNING);
+    wxMessageDialog* warn = new wxMessageDialog(this, "Are you sure you want to exit?", "Save file", wxYES_NO | wxICON_WARNING);
 
-    if (warn->ShowModal() == wxID_YES)
+    if (warn->ShowModal() == wxID_NO)
         return;
 
     StartupFrame* home = new StartupFrame("Pril Home");
