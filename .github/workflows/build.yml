@@ -72,7 +72,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: msys2 {0}
         run: |
-          make
+          mingw32-make
           ls -l pril-editor.exe || exit 1
 
       - name: Package Artifact
