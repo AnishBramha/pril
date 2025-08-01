@@ -1,77 +1,74 @@
-name: Build and Release
+name: 'Build wxWidgets App'
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
-  build-and-release:
+  build:
     runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
-            artifact_name: pril-editor
-            asset_name: pril-editor-linux.tar.gz
-          - os: macos-latest
-            artifact_name: pril-editor
-            asset_name: pril-editor-macos.zip
+            artifact_name: 'pril-editor-linux'
+            executable_name: 'pril-editor'
           - os: windows-latest
-            artifact_name: pril-editor.exe
-            asset_name: pril-editor-windows.zip
+            artifact_name: 'pril-editor-windows'
+            executable_name: 'pril-editor.exe'
+          - os: macos-latest
+            artifact_name: 'pril-editor-macos'
+            executable_name: 'pril-editor'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    - name: 'Checkout code'
+      uses: actions/checkout@v4
 
-    - name: Set up wxWidgets
-      id: wx
-      uses: egor-tensin/setup-wxwidgets@v1
-      with:
-        wx-version: '3.2'
+    - name: 'Install wxWidgets (Linux)'
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libwxgtk3.2-dev build-essential
 
-    - name: Build application
-      run: make CXXFLAGS="${{ steps.wx.outputs.cxxflags }}" LIBS="${{ steps.wx.outputs.libs }}"
+    - name: 'Install wxWidgets (Windows with MSYS2)'
+      if: matrix.os == 'windows-latest'
+      shell: msys2 {0}
+      run: |
+        # Update package databases and install the MinGW toolchain and wxWidgets
+        pacman -Syu --noconfirm
+        pacman -S --noconfirm --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-wxwidgets
 
-    - name: Package artifact
+    - name: 'Install wxWidgets (macOS)'
+      if: matrix.os == 'macos-latest'
+      run: brew install wxwidgets
+
+    - name: 'Compile Application (Linux/macOS)'
+      if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+      run: |
+        # Use wx-config to get the correct compiler and linker flags
+        g++ Frame.cpp App.cpp `wx-config --cxxflags --libs` -o ${{ matrix.executable_name }}
+        
+    - name: 'Compile Application (Windows with MSYS2)'
+      if: matrix.os == 'windows-latest'
+      shell: msys2 {0}
+      run: |
+        # This command runs in the MSYS2 shell, where wx-config is available
+        g++ Frame.cpp App.cpp `wx-config --cxxflags --libs` -o ${{ matrix.executable_name }}
+
+    - name: 'Create Release Directory'
+      run: mkdir release
+
+    - name: 'Move Executable to Release Directory'
       shell: bash
       run: |
-        if [ "${{ matrix.os }}" == "windows-latest" ]; then
-          7z a ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
-        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-          zip ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
-        else
-          tar -czvf ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
-        fi
+        # Use a bash shell for a consistent move command across all OSes
+        mv ${{ matrix.executable_name }} release/
 
-    - name: Create Dummy Release for Manual Run
-      if: github.event_name == 'workflow_dispatch'
-      uses: "marvinpinto/action-automatic-releases@latest"
+    - name: 'Upload Artifact'
+      uses: actions/upload-artifact@v4
       with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "latest-manual-build"
-        prerelease: true
-        title: "Development Build"
-
-    - name: Determine Upload URL
-      id: get_upload_url
-      shell: bash
-      run: |
-        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          echo "upload_url=$(jq -r '.upload_url' $HOME/release.json)" >> $GITHUB_OUTPUT
-        else
-          echo "upload_url=${{ github.event.release.upload_url }}" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_upload_url.outputs.upload_url }}
-        asset_path: ./${{ matrix.asset_name }}
-        asset_name: ${{ matrix.asset_name }}
-        asset_content_type: application/octet-stream
+        name: ${{ matrix.artifact_name }}
+        path: release/
