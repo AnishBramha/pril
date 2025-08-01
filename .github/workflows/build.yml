@@ -52,7 +52,7 @@ jobs:
           update: true
           install: >-
             mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-wxwidgets
+            mingw-w64-x86_64-wxwidgets3.2-msw
 
       - name: Verify wxWidgets Installation (Windows)
         if: matrix.os == 'windows-latest'
