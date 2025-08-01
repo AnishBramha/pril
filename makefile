@@ -17,7 +17,7 @@ SRCS = App.cpp Frame.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 
-CXXFLAGS = `wx-config --cxxflags`
+CXXFLAGS = -std=c++17 `wx-config --cxxflags`
 LDFLAGS = `wx-config --libs`
 
 all: $(TARGET)
