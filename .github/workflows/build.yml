@@ -54,12 +54,6 @@ jobs:
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-wxwidgets3.2-msw
 
-      - name: Verify wxWidgets Installation (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: msys2 {0}
-        run: |
-          pacman -Qi mingw-w64-x86_64-wxwidgets || exit 1
-
       - name: Build on Linux
         if: matrix.os == 'ubuntu-latest'
         shell: bash
