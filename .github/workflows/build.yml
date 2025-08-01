@@ -17,20 +17,17 @@ jobs:
             artifact_name: pril-editor
             asset_name: pril-editor-linux.tar.gz
             package_cmd: tar -czf
-            shell_type: bash
-            build_dir: .
+            build_shell: bash
           - os: macos-latest
             artifact_name: pril-editor
             asset_name: pril-editor-macos.zip
             package_cmd: zip
-            shell_type: bash
-            build_dir: .
+            build_shell: bash
           - os: windows-latest
             artifact_name: pril-editor.exe
             asset_name: pril-editor-windows.zip
             package_cmd: 7z a
-            shell_type: msys2 {0}
-            build_dir: .
+            build_shell: msys2 {0}
 
     steps:
       - name: Checkout code
@@ -46,8 +43,6 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           brew install wxwidgets
-          # Ensure wx-config is in PATH (usually is)
-          echo "wx-config: $(wx-config --version)"
 
       - name: Setup MSYS2 + wxWidgets (Windows)
         if: matrix.os == 'windows-latest'
@@ -60,18 +55,32 @@ jobs:
             mingw-w64-x86_64-wxwidgets
             make
 
-      - name: Build executable
-        shell: ${{ matrix.shell_type }}
+      - name: Build on Linux
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
         run: |
           make
-          # Verify the binary was created
-          ls -l ${{ matrix.artifact_name }} || exit 1
+          ls -l pril-editor || exit 1
 
-      - name: Package executable
+      - name: Build on macOS
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          make
+          ls -l pril-editor || exit 1
+
+      - name: Build on Windows
+        if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
+        run: |
+          make
+          ls -l pril-editor.exe || exit 1
+
+      - name: Package Artifact
         run: |
           ${{ matrix.package_cmd }} "${{ matrix.asset_name }}" "${{ matrix.artifact_name }}"
         shell: bash
-        
+
       - name: Upload Release Asset
         if: github.event_name == 'release'
         uses: actions/upload-release-asset@v1
