@@ -1,4 +1,5 @@
 #include "Frame.h"
+#include <wx/filedlg.h>
 
 StartupFrame::StartupFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title) {
 
@@ -17,9 +18,13 @@ StartupFrame::StartupFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, t
     
     about->SetBackgroundColour(wxColour(0, 0, 255));
     about->SetForegroundColour(*wxWHITE);
-
+    about->Bind(wxEVT_BUTTON, &StartupFrame::switchToAbout, this);
+    
     quit->SetBackgroundColour(wxColour(255, 0, 0));
     quit->SetForegroundColour(*wxWHITE);
+    quit->Bind(wxEVT_BUTTON, &StartupFrame::closeApp, this);
+
+    open->Bind(wxEVT_BUTTON, &StartupFrame::showFileChooser, this);
 
     wxBoxSizer* titleSizer = new wxBoxSizer(wxVERTICAL);
     titleSizer->Add(appName, 1, wxALIGN_CENTER | wxALL, 10);
@@ -41,9 +46,10 @@ StartupFrame::StartupFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, t
 
     this->SetSizerAndFit(mainSizer);
     this->Layout();
+
 }
 
-void StartupFrame::switchFrame(wxCommandEvent& evt) {
+void StartupFrame::switchToEditor(wxCommandEvent& evt) {
 
     EditorFrame* editorFrame = new EditorFrame("Pril Editor");
     editorFrame->SetClientSize(800, 600);
@@ -53,9 +59,41 @@ void StartupFrame::switchFrame(wxCommandEvent& evt) {
     this->Close();
 }
 
+void StartupFrame::switchToAbout(wxCommandEvent& evt) {
+
+    AboutFrame* aboutFrame = new AboutFrame("About");
+    aboutFrame->SetClientSize(300, 135);
+    aboutFrame->Center();
+    aboutFrame->Show();
+}
+
+void StartupFrame::closeApp(wxCommandEvent& evt) {
+
+    this->Close();
+}
+
+void StartupFrame::showFileChooser(wxCommandEvent& evt) {
+
+    wxFileDialog* files = new wxFileDialog(this, "Open a text file", "", "", "Text files (*.txt)|*.txt|Markdown (*.md)|*.md", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    files->ShowModal();
+}
+
 EditorFrame::EditorFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title) {
 
     
+}
+
+AboutFrame::AboutFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~wxRESIZE_BORDER & ~wxMAXIMIZE_BOX & ~wxMINIMIZE_BOX) {
+
+    wxBoxSizer* boxSizer = new wxBoxSizer(wxALL);
+
+    wxStaticText* info = new wxStaticText(this, wxID_ANY, "\t   Free and Open Source Text Editor\n\nLicensed under the GNU Public License (3.0)\n\n\t\t\tVersion 1.0-alpha\n\n\t\t~ Anish Teja Bramhajosyula");
+
+    boxSizer->Add(info, 0, wxALL | wxALIGN_CENTER, 10);
+
+    this->SetSizerAndFit(boxSizer);
+    this->Layout();
 }
 
 

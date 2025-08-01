@@ -10,7 +10,10 @@ class StartupFrame : public wxFrame {
 
     private:
 
-        void switchFrame(wxCommandEvent& evt);
+        void switchToEditor(wxCommandEvent& evt);
+        void switchToAbout(wxCommandEvent& evt);
+        void closeApp(wxCommandEvent& evt);
+        void showFileChooser(wxCommandEvent& evt);
 };
 
 class EditorFrame : public wxFrame {
@@ -20,4 +23,10 @@ class EditorFrame : public wxFrame {
         EditorFrame(const wxString& title);
 };
 
+class AboutFrame : public wxFrame {
+
+    public:
+
+        AboutFrame(const wxString& title);
+};
 
