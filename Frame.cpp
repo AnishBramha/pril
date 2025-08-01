@@ -210,7 +210,7 @@ AboutFrame::AboutFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title
 
     wxBoxSizer* boxSizer = new wxBoxSizer(wxALL);
 
-    wxStaticText* info = new wxStaticText(this, wxID_ANY, "\t   Free and Open Source Text Editor\n\nLicensed under the GNU Public License (3.0)\n\n\t\t\tVersion 1.1-alpha\n\n\t\t~ Anish Teja Bramhajosyula\n\n   https://www.github.com/AnishBramha/pril");
+    wxStaticText* info = new wxStaticText(this, wxID_ANY, "\t   Free and Open Source Text Editor\n\nLicensed under the GNU Public License (3.0)\n\n\t\t\tVersion 1.0-beta\n\n\t\t~ Anish Teja Bramhajosyula\n\n   https://www.github.com/AnishBramha/pril");
 
     boxSizer->Add(info, 0, wxALL | wxALIGN_CENTER, 10);
 
