@@ -3,20 +3,21 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*.*.*' 
+      - 'v*.*.*'
 
 jobs:
   build-and-release:
     runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            artifact_name: pril-editor-linux
+            artifact_name: pril-editor
             asset_name: pril-editor-linux.tar.gz
           - os: macos-latest
-            artifact_name: pril-editor-macos
+            artifact_name: pril-editor
             asset_name: pril-editor-macos.zip
           - os: windows-latest
             artifact_name: pril-editor.exe
@@ -26,7 +27,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up MSYS2 for Windows
+    - name: Set up MSYS2
       if: matrix.os == 'windows-latest'
       uses: msys2/setup-msys2@v2
       with:
@@ -36,27 +37,31 @@ jobs:
           mingw-w64-x86_64-toolchain
           make
 
-    - name: Build the application
-      shell: msys2 {0}
+    - name: Build application
+      shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
       run: make
 
-    - name: Package the artifact
+    - name: Package artifact
       shell: bash
       run: |
         if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          # Use 7z, which is available on the Windows runner
           7z a ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
         elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+          # Use zip for macOS
           zip ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
         else
+          # Use tar for Linux
           tar -czvf ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
         fi
 
-    - name: Upload to Release
+    - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_path: ./${{ matrix.asset_name }}
         asset_name: ${{ matrix.asset_name }}
-        asset_content_type: application/zip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        asset_content_type: application/octet-stream
+
