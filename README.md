@@ -192,4 +192,4 @@ g++ -std=c++17 -o pril-editor.exe `wx-config --cxxflags --libs` App.cpp Frame.cp
 g++ -std=c++17 -o pril-editor.exe `wx-config --cxxflags --libs` App.cpp Frame.cpp
 ```
 
-Run the executable as given in [the previous section](#2-generate-compilation-and-linking-intermediates).
+Run the executable as given in [previous section](#2-generate-compilation-and-linking-intermediates).
