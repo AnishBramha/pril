@@ -52,6 +52,23 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libwxgtk3.2-dev
 
+    - name: DEBUG - Verify wx-config (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: which wx-config
+
+    - name: Set PATH and DEBUG (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        # Homebrew on Intel Macs installs to /usr/local, on ARM (Apple Silicon) to /opt/homebrew
+        # This command adds the correct bin directory to the PATH for subsequent steps
+        echo "$(brew --prefix wxwidgets)/bin" >> $GITHUB_PATH
+        which wx-config
+
+    - name: DEBUG - Verify wx-config (Windows)
+      if: matrix.os == 'windows-latest'
+      shell: msys2 {0}
+      run: which wx-config
+
     - name: Build on macOS and Linux
       if: matrix.os != 'windows-latest'
       run: make
@@ -60,7 +77,7 @@ jobs:
       if: matrix.os == 'windows-latest'
       shell: msys2 {0}
       run: make
-
+      
     - name: Package artifact
       run: |
         if [ "${{ matrix.os }}" == "windows-latest" ]; then
