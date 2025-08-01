@@ -11,7 +11,7 @@ else
 endif
 
 
-TARGET = app$(EXEC_EXT)
+TARGET = pril-editor$(EXEC_EXT)
 
 SRCS = App.cpp Frame.cpp 
 
@@ -35,7 +35,7 @@ clean:
 	$(RM) $(OBJS)
 
 run:
-	make all && make clean && ./app
+	make all && make clean && ./pril-editor
 
 .PHONY: all clean
 
