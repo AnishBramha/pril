@@ -1,5 +1,3 @@
-name: Build and Release
-
 on:
   release:
     types: [created]
@@ -16,67 +14,76 @@ jobs:
           - os: ubuntu-latest
             artifact_name: pril-editor
             asset_name: pril-editor-linux.tar.gz
+            package_command: tar -czvf
+            package_args: ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
+            shell_type: bash
           - os: macos-latest
             artifact_name: pril-editor
             asset_name: pril-editor-macos.zip
+            package_command: zip
+            package_args: ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
+            shell_type: bash
           - os: windows-latest
             artifact_name: pril-editor.exe
             asset_name: pril-editor-windows.zip
+            package_command: 7z a
+            package_args: ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
+            shell_type: msys2 {0}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Dependencies (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libwxgtk3.2-dev build-essential make
+      - name: Install Dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwxgtk3.2-dev build-essential make
 
-    - name: Install Dependencies (macOS)
-      if: matrix.os == 'macos-latest'
-      run: brew install wxwidgets
+      - name: Install Dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install wxwidgets
 
-    - name: Install Dependencies (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: MINGW64
-        update: true
-        install: >-
-          mingw-w64-x86_64-toolchain
-          mingw-w64-x86_64-wxwidgets
-          make
+      - name: Setup MSYS2 (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-wxwidgets
+            make
 
-    - name: Build application
-      shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
-      run: make
+      - name: Build application
+        shell: ${{ matrix.shell_type }}
+        run: make
 
-    - name: Package artifact
-      shell: bash
-      run: |
-        if [ "${{ matrix.os }}" == "windows-latest" ]; then
-          7z a ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
-        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-          zip ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
-        else
-          tar -czvf ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
-        fi
+      - name: Package artifact
+        shell: bash
+        run: |
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            7z a "${{ matrix.asset_name }}" "${{ matrix.artifact_name }}"
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            zip "${{ matrix.asset_name }}" "${{ matrix.artifact_name }}"
+          else
+            tar -czvf "${{ matrix.asset_name }}" "${{ matrix.artifact_name }}"
+          fi
 
-    - name: Upload Release Asset
-      if: github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./${{ matrix.asset_name }}
-        asset_name: ${{ matrix.asset_name }}
-        asset_content_type: application/octet-stream
+      - name: Upload Release Asset
+        if: github.event_name == 'release'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./${{ matrix.asset_name }}
+          asset_name: ${{ matrix.asset_name }}
+          asset_content_type: application/octet-stream
 
-    - name: Upload Build Artifact
-      if: github.event_name == 'workflow_dispatch'
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.asset_name }}
-        path: ./${{ matrix.asset_name }}
+      - name: Upload Build Artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: ./${{ matrix.asset_name }}
