@@ -31,7 +31,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up MSYS2
+    - name: Set up MSYS2 and install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       uses: msys2/setup-msys2@v2
       with:
@@ -40,6 +40,17 @@ jobs:
         install: >-
           mingw-w64-x86_64-toolchain
           make
+          mingw-w64-x86_64-wxwidgets
+
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: brew install wxwidgets
+
+    - name: Install dependencies (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libwxgtk3.2-dev
 
     - name: Build on macOS and Linux
       if: matrix.os != 'windows-latest'
@@ -73,10 +84,8 @@ jobs:
       id: get_upload_url
       run: |
         if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          # For manual runs, get URL from the dummy release step
           echo "upload_url=$(jq -r '.upload_url' $HOME/release.json)" >> $GITHUB_OUTPUT
         else
-          # For tag pushes, get URL from the event payload
           echo "upload_url=${{ github.event.release.upload_url }}" >> $GITHUB_OUTPUT
         fi
 
