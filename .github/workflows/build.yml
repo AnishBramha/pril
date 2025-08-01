@@ -28,12 +28,13 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Set up wxWidgets
+      id: wx
       uses: egor-tensin/setup-wxwidgets@v1
       with:
-        wx-version: '3.3'
+        wx-version: '3.2'
 
     - name: Build application
-      run: make
+      run: make CXXFLAGS="${{ steps.wx.outputs.cxxflags }}" LIBS="${{ steps.wx.outputs.libs }}"
 
     - name: Package artifact
       shell: bash
