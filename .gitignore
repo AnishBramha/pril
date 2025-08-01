@@ -3,4 +3,5 @@ app
 
 *.o
 
+.DS_Store
 

@@ -21,6 +21,19 @@ class EditorFrame : public wxFrame {
     public:
 
         EditorFrame(const wxString& title);
+
+    private:
+
+        void switchToHome(wxCommandEvent& evt);
+        void onSave(wxCommandEvent& evt);
+        void onSaveAs(wxCommandEvent& evt);
+
+        void save(const wxString& filepath);
+        void saveAs(void);
+
+        wxTextCtrl* text;
+        wxStaticText* fileName;
+        wxString filepath;
 };
 
 class AboutFrame : public wxFrame {

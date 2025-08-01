@@ -1,5 +1,8 @@
 #include "Frame.h"
 #include <wx/filedlg.h>
+#include <wx/ffile.h>
+#include <wx/filename.h>
+#include <wx/msgdlg.h>
 
 StartupFrame::StartupFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title) {
 
@@ -25,6 +28,8 @@ StartupFrame::StartupFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, t
     quit->Bind(wxEVT_BUTTON, &StartupFrame::closeApp, this);
 
     open->Bind(wxEVT_BUTTON, &StartupFrame::showFileChooser, this);
+
+    create->Bind(wxEVT_BUTTON, &StartupFrame::switchToEditor, this);
 
     wxBoxSizer* titleSizer = new wxBoxSizer(wxVERTICAL);
     titleSizer->Add(appName, 1, wxALIGN_CENTER | wxALL, 10);
@@ -62,7 +67,7 @@ void StartupFrame::switchToEditor(wxCommandEvent& evt) {
 void StartupFrame::switchToAbout(wxCommandEvent& evt) {
 
     AboutFrame* aboutFrame = new AboutFrame("About");
-    aboutFrame->SetClientSize(300, 135);
+    aboutFrame->SetClientSize(300, 165);
     aboutFrame->Center();
     aboutFrame->Show();
 }
@@ -81,14 +86,97 @@ void StartupFrame::showFileChooser(wxCommandEvent& evt) {
 
 EditorFrame::EditorFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title) {
 
+    wxPanel* controlPanel = new wxPanel(this);
+
+    wxButton* save = new wxButton(controlPanel, wxID_ANY, "Save");
+    wxButton* saveAs = new wxButton(controlPanel, wxID_ANY, "Save As");
+    wxButton* home = new wxButton(controlPanel, wxID_ANY, "Home");
+
+    save->Bind(wxEVT_BUTTON, &EditorFrame::onSave, this);
+    saveAs->Bind(wxEVT_BUTTON, &EditorFrame::onSaveAs, this);
+    home->Bind(wxEVT_BUTTON, &EditorFrame::switchToHome, this);
     
+    wxStaticText* fileName = new wxStaticText(controlPanel, wxID_ANY, "untitled.txt");
+
+    wxTextCtrl* editor = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+
+    wxBoxSizer* controlSizer = new wxBoxSizer(wxHORIZONTAL);
+    controlSizer->Add(fileName, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, 10);
+    controlSizer->Add(save, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    controlSizer->Add(saveAs, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    controlSizer->Add(home, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    controlPanel->SetSizer(controlSizer);
+
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(controlPanel, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(editor, 1, wxEXPAND | wxALL, 10);
+
+    this->fileName = fileName;
+    this->text = editor;
+
+    this->SetSizerAndFit(sizer);
+    this->Layout();
+}
+
+void EditorFrame::save(const wxString& filepath) {
+
+    wxFFile* file = new wxFFile(filepath, "w");
+
+    file->Write(this->text->GetValue());
+
+    file->Close();
+}
+
+void EditorFrame::saveAs(void) {
+
+    wxFileDialog* saveDlg = new wxFileDialog(this, "Save file", "", "", "Text files (*.txt)|*.txt|Markdown (*.md)|*.md", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (saveDlg->ShowModal() == wxID_CANCEL)
+        return;
+
+    wxString filepath = saveDlg->GetPath();
+
+    save(filepath);
+    this->filepath = filepath;
+
+    wxFileName fileName(filepath);
+    this->fileName->SetLabel(fileName.GetFullName());
+}
+
+void EditorFrame::onSave(wxCommandEvent& evt) {
+
+    if (this->filepath.IsEmpty())
+        this->saveAs();
+
+    else
+        this->save(this->filepath);
+}
+
+void EditorFrame::onSaveAs(wxCommandEvent& evt) {
+
+    this->saveAs();
+}
+
+void EditorFrame::switchToHome(wxCommandEvent& evt) {
+
+    wxMessageDialog* warn = new wxMessageDialog(this, "Do you want to save file before exiting?", "Save file", wxYES_NO | wxICON_WARNING);
+
+    if (warn->ShowModal() == wxID_YES)
+        return;
+
+    StartupFrame* home = new StartupFrame("Pril Home");
+    home->SetClientSize(400,200);
+    home->Center();
+    home->Show();
+
+    this->Close();
 }
 
 AboutFrame::AboutFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~wxRESIZE_BORDER & ~wxMAXIMIZE_BOX & ~wxMINIMIZE_BOX) {
 
     wxBoxSizer* boxSizer = new wxBoxSizer(wxALL);
 
-    wxStaticText* info = new wxStaticText(this, wxID_ANY, "\t   Free and Open Source Text Editor\n\nLicensed under the GNU Public License (3.0)\n\n\t\t\tVersion 1.0-alpha\n\n\t\t~ Anish Teja Bramhajosyula");
+    wxStaticText* info = new wxStaticText(this, wxID_ANY, "\t   Free and Open Source Text Editor\n\nLicensed under the GNU Public License (3.0)\n\n\t\t\tVersion 1.1-alpha\n\n\t\t~ Anish Teja Bramhajosyula\n\n   https://www.github.com/AnishBramha/pril");
 
     boxSizer->Add(info, 0, wxALL | wxALIGN_CENTER, 10);
 
