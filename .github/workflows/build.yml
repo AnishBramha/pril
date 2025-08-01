@@ -4,11 +4,15 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
 
 jobs:
   build-and-release:
-    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
 
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -37,22 +41,43 @@ jobs:
           mingw-w64-x86_64-toolchain
           make
 
-    - name: Build application
-      shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
+    - name: Build on macOS and Linux
+      if: matrix.os != 'windows-latest'
+      run: make
+
+    - name: Build on Windows
+      if: matrix.os == 'windows-latest'
+      shell: msys2 {0}
       run: make
 
     - name: Package artifact
-      shell: bash
       run: |
         if [ "${{ matrix.os }}" == "windows-latest" ]; then
-          # Use 7z, which is available on the Windows runner
           7z a ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
         elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-          # Use zip for macOS
           zip ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
         else
-          # Use tar for Linux
           tar -czvf ${{ matrix.asset_name }} ${{ matrix.artifact_name }}
+        fi
+
+    - name: Create Dummy Release for Manual Run
+      if: github.event_name == 'workflow_dispatch'
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest-manual-build"
+        prerelease: true
+        title: "Development Build"
+
+    - name: Determine Upload URL
+      id: get_upload_url
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          # For manual runs, get URL from the dummy release step
+          echo "upload_url=$(jq -r '.upload_url' $HOME/release.json)" >> $GITHUB_OUTPUT
+        else
+          # For tag pushes, get URL from the event payload
+          echo "upload_url=${{ github.event.release.upload_url }}" >> $GITHUB_OUTPUT
         fi
 
     - name: Upload Release Asset
@@ -60,8 +85,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ github.event.release.upload_url }}
+        upload_url: ${{ steps.get_upload_url.outputs.upload_url }}
         asset_path: ./${{ matrix.asset_name }}
         asset_name: ${{ matrix.asset_name }}
         asset_content_type: application/octet-stream
-
