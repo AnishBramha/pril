@@ -1,6 +1,6 @@
 # The `PRiL` Text Editor
 
-**PRiL** is a free and open source text editor developed using the wxWidgets GUI library in C++. It supports both text and markdown formats and runs on all major platforms (Linux, macOS and Windows).
+`PRiL` is a free and open source text editor developed using the wxWidgets GUI library in C++. It supports both text and markdown formats and runs on all major platforms (Linux, macOS and Windows).
 
 ## Contribution
 Pull requests are welcome! Please contribute to improve this project and provide suggestions by raising issues.
