@@ -1,6 +1,6 @@
 # The `PRiL` Text Editor
 
-`PRiL` is a free and open source text editor developed using the wxWidgets GUI library in C++. It supports both text and markdown formats and runs on all major platforms (Linux, macOS and Windows).
+`PRiL` is a free and open source text editor developed using the `wxWidgets` GUI library in `C++`. It supports both text and markdown formats and runs on all major platforms (Linux, macOS and Windows).
 
 ## Contribution
 Pull requests are welcome! Please contribute to improve this project and provide suggestions by raising issues.
@@ -33,9 +33,9 @@ Get the source code from the [release](https://github.com/AnishBramha/pril/relea
 ---
 
 #### 1. Package Manager
-* Get [chocolatey](https://chocolatey.org/) for **Windows**.
+* Get [`chocolatey`](https://chocolatey.org/) for **Windows**.
 
-* Get [homebrew](https://brew.sh/) for **macOS** by running the following command on bash/zsh:
+* Get [`homebrew`](https://brew.sh/) for **macOS** by running the following command on `bash`/`zsh`:
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
@@ -50,16 +50,16 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 
 * This build guide covers `apt`, `dnf` and `pacman`, which are usually the default package managers on Debian-based, RedHat-based and Arch-based **Linux** distros.
 
-#### 2. C/C++ compiler and tools
+#### 2. `C`/`C++` compiler and tools
 
-* On **Windows**, install [minGW64](https://www.mingw-w64.org/) by running the following command in PowerShell with administrator privileges:
+* On **Windows**, install [`minGW64`](https://www.mingw-w64.org/) by running the following command in PowerShell with administrator privileges:
 ```
 choco install mingw
 ```
 > [!IMPORTANT]
 > Verify if `minGW` is added to path by running `$env:Path` in PowerShell and check if the path to the `bin` folder is visible. If not, edit the System Environment Variables and add it to path manually.
 
-* On **macOS**, install the Xcode command line tools by running:
+* On **macOS**, install the `Xcode` command line tools by running:
 ```
 sudo xcode-select --install
 ```
@@ -79,9 +79,9 @@ sudo pacman -S base-devel
 g++ --version
 ```
 
-#### 3. Make
+#### 3. `Make`
 
-This project uses [make](https://www.gnu.org/software/make/) to run makefiles for easier compilation, linking and execution.
+This project uses [`GNU make`](https://www.gnu.org/software/make/) to run makefiles for easier compilation, linking and execution.
 
 > [!NOTE]
 > If you do not want to use `make`, skip to [GUI library](#4-wxwidgets)
@@ -97,20 +97,20 @@ choco install make
 make --version
 ```
 
-* On **macOS**, `make` is installed with the Xcode command line tools.
+* On **macOS**, `make` is installed with the `Xcode` command line tools.
 
 * On **Linux**, `make` comes packaged with `build-essential`/`base-devel`.
 
-#### 4. wxWidgets
+#### 4. `wxWidgets`
 
-[wxWidgets](https://wxwidgets.org/) is a cross-platform free and open source GUI library with support for building native-looking OS-agnostic applications.
+[`wxWidgets`](https://wxwidgets.org/) is a cross-platform free and open source GUI library with support for building native-looking OS-agnostic applications.
 
 * On **Windows**, run in PowerShell admin:
 ```
 choco install wxwidgets
 ```
 
-* On **macOS**, run in bash/zsh:
+* On **macOS**, run in `bash`/`zsh`:
 ```
 brew install wxwidgets
 ```
