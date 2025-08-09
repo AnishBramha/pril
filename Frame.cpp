@@ -208,9 +208,9 @@ void EditorFrame::switchToHome(wxCommandEvent& evt) {
 
 AboutFrame::AboutFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~wxRESIZE_BORDER & ~wxMAXIMIZE_BOX & ~wxMINIMIZE_BOX) {
 
-    wxBoxSizer* boxSizer = new wxBoxSizer(wxALL);
+    wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);
 
-    wxStaticText* info = new wxStaticText(this, wxID_ANY, "\t   Free and Open Source Text Editor\n\nLicensed under the GNU Public License (3.0)\n\n\t\t\tVersion 1.0.0\n\n\t\t~ Anish Teja Bramhajosyula\n\n   https://www.github.com/AnishBramha/pril");
+    wxStaticText* info = new wxStaticText(this, wxID_ANY, "\t   Free and Open Source Text Editor\n\nLicensed under the GNU Public License (3.0)\n\n\t\t\tVersion 1.0.1\n\n\t\t~ Anish Teja Bramhajosyula\n\n   https://www.github.com/AnishBramha/pril");
 
     boxSizer->Add(info, 0, wxALL | wxALIGN_CENTER, 10);
 
