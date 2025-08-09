@@ -163,7 +163,7 @@ void EditorFrame::save(const wxString& filepath) {
 
 void EditorFrame::saveAs(void) {
 
-    wxFileDialog* saveDlg = new wxFileDialog(this, "Save file", "", "", "Text files (*.txt)|*.txt|Markdown (*.md)|*.md", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxFileDialog* saveDlg = new wxFileDialog(this, "Save file", "", "", "Text files (*.txt)|*.txt|Markdown (*.md)|*.md|All files (*.*)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (saveDlg->ShowModal() == wxID_CANCEL)
         return;
