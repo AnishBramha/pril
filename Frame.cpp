@@ -80,7 +80,7 @@ void StartupFrame::closeApp(wxCommandEvent& evt) {
 
 void StartupFrame::showFileChooser(wxCommandEvent& evt) {
 
-    wxFileDialog* files = new wxFileDialog(this, "Open a text file", "", "", "Text files (*.txt)|*.txt|Markdown (*.md)|*.md", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    wxFileDialog* files = new wxFileDialog(this, "Open a text file", "", "", "Text files (*.txt)|*.txt|Markdown (*.md)|*.md|All files (*.*)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
     if (files->ShowModal() == wxID_OK) {
 
